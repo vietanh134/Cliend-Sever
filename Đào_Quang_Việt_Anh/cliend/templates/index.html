@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TCP Socket Pro - Giao diện Web Client truyền tin và gửi file thời gian thực đỉnh cao.">
+    <title>TCP Socket Terminal Pro - Giao diện Web Client Chat & File</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Ambient Background Light Gradients -->
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="logo-wrapper">
+                    <div class="logo-icon">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <span class="pulse-ring"></span>
+                </div>
+                <div class="brand-text">
+                    <h1>TCP Socket <span>Pro</span></h1>
+                    <span class="subtitle">Realtime Terminal & File Transfer</span>
+                </div>
+            </div>
+
+            <!-- Global Connection Quick-Config Bar -->
+            <div class="connection-bar">
+                <div class="input-group">
+                    <span class="input-icon"><i class="fa-solid fa-server"></i></span>
+                    <input type="text" id="targetIp" value="172.20.10.4" placeholder="IP Server (172.20.10.4)">
+                </div>
+                <div class="input-group port-group">
+                    <span class="input-icon"><i class="fa-solid fa-plug"></i></span>
+                    <input type="number" id="targetPort" value="9000" placeholder="Port">
+                </div>
+                <button id="btnConnect" class="btn btn-connect">
+                    <i class="fa-solid fa-bolt"></i> <span id="connectBtnText">Kết nối</span>
+                </button>
+            </div>
+
+            <!-- Top Action Controls -->
+            <div class="nav-controls">
+                <button id="btnLocalServer" class="btn btn-outline" title="Bật/Tắt Local TCP Server (Port 9000)">
+                    <i class="fa-solid fa-hard-drive"></i> <span id="localServerText">Local Server: TẮT</span>
+                </button>
+                <div class="divider-v"></div>
+                <button id="btnSound" class="btn-icon" title="Bật/Tắt Âm thanh">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="btnTheme" class="btn-icon" title="Đổi Giao diện Sáng/Tối">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="main-content">
+            <!-- Sidebar / Control Dashboard -->
+            <aside class="sidebar">
+                <!-- Connection Status Card -->
+                <div class="card status-card">
+                    <div class="card-header">
+                        <h3>Trạng Thái Kết Nối</h3>
+                        <div id="statusBadge" class="badge badge-disconnected">
+                            <span class="dot"></span> <span id="statusText">Chưa kết nối</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <span class="label">Server IP:</span>
+                            <span class="value" id="displayIp">172.20.10.4</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Cổng (Port):</span>
+                            <span class="value" id="displayPort">9000</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Giao thức:</span>
+                            <span class="value text-cyan"><i class="fa-solid fa-code"></i> JSON Packet (c1.py)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Thời gian:</span>
+                            <span class="value" id="displayConnectedAt">--:--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Traffic Stats Card -->
+                <div class="card stats-card">
+                    <div class="card-header">
+                        <h3>Thống Kê Truyền Nhận</h3>
+                        <i class="fa-solid fa-chart-line text-muted"></i>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-icon icon-sent"><i class="fa-solid fa-paper-plane"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statSent">0</span>
+                                <span class="stat-label">Đã gửi</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon icon-recv"><i class="fa-solid fa-inbox"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statRecv">0</span>
+                                <span class="stat-label">Đã nhận</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon icon-files-sent"><i class="fa-solid fa-file-export"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statFilesSent">0</span>
+                                <span class="stat-label">File gửi</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon icon-files-recv"><i class="fa-solid fa-file-import"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statFilesRecv">0</span>
+                                <span class="stat-label">File nhận</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bandwidth-bar">
+                        <div class="bw-info">
+                            <span><i class="fa-solid fa-upload text-green"></i> <span id="statBytesSent">0 B</span></span>
+                            <span><i class="fa-solid fa-download text-purple"></i> <span id="statBytesRecv">0 B</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Presets Palette -->
+                <div class="card presets-card">
+                    <div class="card-header">
+                        <h3>Thử Lệnh Nhanh</h3>
+                        <i class="fa-solid fa-terminal text-muted"></i>
+                    </div>
+                    <div class="presets-list">
+                        <button class="preset-chip" data-cmd="PING">
+                            <i class="fa-solid fa-satellite-dish"></i> PING
+                        </button>
+                        <button class="preset-chip" data-cmd="TIME">
+                            <i class="fa-regular fa-clock"></i> TIME
+                        </button>
+                        <button class="preset-chip" data-cmd="GET_STATUS">
+                            <i class="fa-solid fa-microchip"></i> GET_STATUS
+                        </button>
+                        <button class="preset-chip" data-cmd="HELP">
+                            <i class="fa-circle-question"></i> HELP
+                        </button>
+                        <button class="preset-chip" data-cmd="Xin chào TCP Server!">
+                            <i class="fa-regular fa-hand"></i> Hello Server
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Interactive Terminal & File Viewport -->
+            <section class="chat-viewport" id="chatViewport">
+                <!-- Dropzone Overlay for File Drag & Drop -->
+                <div class="dropzone-overlay hidden" id="dropzoneOverlay">
+                    <div class="dropzone-content">
+                        <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                        <h3>Thả tập tin vào đây để gửi qua TCP Socket</h3>
+                        <p>Hỗ trợ ảnh (PNG, JPG, GIF, WebP), tài liệu (TXT, PDF, PY) tối đa 100MB</p>
+                    </div>
+                </div>
+
+                <!-- Viewport Header Controls -->
+                <div class="viewport-header">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Tìm kiếm tin nhắn & file...">
+                    </div>
+                    <div class="filter-pills">
+                        <button class="filter-pill active" data-filter="all">Tất cả</button>
+                        <button class="filter-pill" data-filter="msg">Tin nhắn</button>
+                        <button class="filter-pill" data-filter="file">Tập tin</button>
+                        <button class="filter-pill" data-filter="system">Hệ thống</button>
+                    </div>
+                    <div class="viewport-actions">
+                        <button id="btnClearChat" class="btn-action" title="Xóa màn hình">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <button id="btnExportChat" class="btn-action" title="Xuất nhật ký chat (TXT)">
+                            <i class="fa-solid fa-file-export"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Message & File Feed Container -->
+                <div class="messages-container" id="messagesContainer">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h2>TCP Socket Terminal Pro</h2>
+                        <p>Hệ thống truyền nhận Tin nhắn & Tập tin xem trước hình ảnh thời gian thực.</p>
+                        <div class="welcome-features">
+                            <div class="feature-chip"><i class="fa-regular fa-image"></i> Previews Ảnh PNG/JPG</div>
+                            <div class="feature-chip"><i class="fa-solid fa-file-code"></i> Text & Code Highlight</div>
+                            <div class="feature-chip"><i class="fa-solid fa-paperclip"></i> Drag & Drop File Upload</div>
+                            <div class="feature-chip"><i class="fa-solid fa-bolt"></i> SSE Event Streaming</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Dock Container -->
+                <div class="input-dock">
+                    <!-- Pending Attachment Preview Bar -->
+                    <div class="attachment-preview-bar hidden" id="attachmentPreviewBar">
+                        <div class="attachment-file-info">
+                            <i class="fa-solid fa-file-lines attachment-icon"></i>
+                            <div class="attachment-details">
+                                <span class="attachment-name" id="attachedFileName">sample.png</span>
+                                <span class="attachment-size" id="attachedFileSize">240 KB</span>
+                            </div>
+                        </div>
+                        <button class="btn-remove-attachment" id="btnRemoveAttachment" title="Hủy tập tin này">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Input Controls Bar -->
+                    <div class="input-container">
+                        <!-- File Upload Hidden Input & Trigger Button -->
+                        <input type="file" id="fileInput" class="hidden">
+                        <button id="btnAttachFile" class="dock-btn" title="Gửi tập tin đính kèm">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+
+                        <!-- Emoji Popover Trigger Button -->
+                        <button id="btnEmoji" class="dock-btn" title="Thêm Emoji">
+                            <i class="fa-regular fa-face-smile"></i>
+                        </button>
+                        
+                        <!-- Emoji Picker Popover -->
+                        <div class="emoji-popover hidden" id="emojiPopover">
+                            <span class="emoji-item">👍</span>
+                            <span class="emoji-item">🚀</span>
+                            <span class="emoji-item">❤️</span>
+                            <span class="emoji-item">🔥</span>
+                            <span class="emoji-item">⚡</span>
+                            <span class="emoji-item">✅</span>
+                            <span class="emoji-item">💻</span>
+                            <span class="emoji-item">📂</span>
+                            <span class="emoji-item">🎉</span>
+                        </div>
+
+                        <!-- Main Multiline Input -->
+                        <textarea id="messageInput" placeholder="Nhập tin nhắn hoặc thả tập tin vào đây để gửi... (Enter để gửi, Shift+Enter xuống dòng)" rows="1"></textarea>
+
+                        <!-- Action Send Button -->
+                        <button id="btnSend" class="btn btn-send" title="Gửi (Enter)">
+                            <span id="sendBtnLabel">Gửi</span> <i class="fa-solid fa-paper-plane" id="sendBtnIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Image Lightbox Modal for HD Image Viewing -->
+    <div class="lightbox-modal hidden" id="lightboxModal">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+            <img id="lightboxImage" src="" alt="Xem ảnh phóng to">
+            <div class="lightbox-caption">
+                <span id="lightboxTitle">image.png</span>
+                <a id="lightboxDownload" href="" download class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-download"></i> Tải về
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Custom Frontend JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
